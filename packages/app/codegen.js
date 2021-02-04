@@ -35,6 +35,25 @@ module.exports = {
       config: {
         rawRequest: true,
         skipTypename: true
+      },
+      hooks: {
+        afterOneFileWrite: [
+          "yarn run prettier --write",
+          "addlicense -c 'Opstrace, Inc.' -l apache"
+        ]
+      }
+    },
+    "../../go/pkg/graphql/client_generated.go": {
+      plugins: [
+        "graphql-codegen-golang"
+      ],
+      config: {
+        packageName: "graphql",
+      },
+      hooks: {
+        afterOneFileWrite: [
+          "go fmt"
+        ]
       }
     }
   }
