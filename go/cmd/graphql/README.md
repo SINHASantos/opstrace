@@ -18,9 +18,15 @@ Terminal B:
 opstrace/packages/app$ yarn console
 ```
 
-Terminal C (requires tenant named `tenant-foo`):
+Terminal C (requires that a tenant named `tenant-foo` be created):
 ```
-opstrace/go/cmd/graphql$ go build && HASURA_GRAPHQL_ADMIN_SECRET=myadminsecret ./graphql --loglevel debug --graphql-url "http://127.0.0.1:8080/v1/graphql" --listen "127.0.0.1:8989" --tenantname tenant-foo
+opstrace/go/cmd/graphql$ go build && \
+GRAPHQL_ENDPOINT=http://127.0.0.1:8080/v1/graphql \
+HASURA_GRAPHQL_ADMIN_SECRET=myadminsecret \
+./graphql \
+  --loglevel debug \
+  --listen "127.0.0.1:8989" \
+  --tenantname tenant-foo
 ```
 
 ## Example usage

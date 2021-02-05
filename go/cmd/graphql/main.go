@@ -43,8 +43,6 @@ func main() {
 	flag.StringVar(&loglevel, "loglevel", "info", "error|info|debug")
 	var listenAddress string
 	flag.StringVar(&listenAddress, "listen", "", "")
-	var graphqlURLstr string
-	flag.StringVar(&graphqlURLstr, "graphql-url", "http://localhost:8080/v1/graphql", "")
 	var tenantName string
 	flag.StringVar(&tenantName, "tenantname", "", "")
 
@@ -61,14 +59,18 @@ func main() {
 	}
 	log.Infof("listen address: %s", listenAddress)
 
-	graphqlURL, uerr := url.Parse(graphqlURLstr)
+
+	graphqlEndpoint := os.Getenv("GRAPHQL_ENDPOINT")
+	if graphqlEndpoint == "" {
+		// Try default (dev environment)
+		graphqlEndpoint = "http://localhost:8080/v1/graphql"
+		log.Warnf("missing GRAPHQL_ENDPOINT, trying %s", graphqlEndpoint)
+	}
+	graphqlEndpointURL, uerr := url.Parse(graphqlEndpoint)
 	if uerr != nil {
-		log.Fatalf("bad --graphql-url: %s", uerr)
+		log.Fatalf("bad GRAPHQL_ENDPOINT: %s", uerr)
 	}
-	if graphqlURL.String() == "" {
-		log.Fatalf("missing required --graphql-url")
-	}
-	log.Infof("graphql URL: %v", graphqlURL)
+	log.Infof("graphql URL: %v", graphqlEndpointURL)
 
 	graphqlSecret := os.Getenv("HASURA_GRAPHQL_ADMIN_SECRET")
 	if graphqlSecret == "" {
@@ -80,8 +82,8 @@ func main() {
 	}
 	log.Infof("tenant name: %s", tenantName)
 
-	credentialClient = graphql.NewCredentialAccess(tenantName, graphqlURL, graphqlSecret)
-	exporterClient = graphql.NewExporterAccess(tenantName, graphqlURL, graphqlSecret)
+	credentialClient = graphql.NewCredentialAccess(tenantName, graphqlEndpointURL, graphqlSecret)
+	exporterClient = graphql.NewExporterAccess(tenantName, graphqlEndpointURL, graphqlSecret)
 
 	router := mux.NewRouter()
 	router.Handle("/metrics", promhttp.Handler())
