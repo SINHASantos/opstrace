@@ -437,13 +437,13 @@ func (client *Client) GetCredentials(vars *GetCredentialsVariables) (*GetCredent
 }
 
 //
-// mutation UpdateCredential($tenant: String!, $name: String!, $value: bytea!, $updated_at: timestamptz!)
+// mutation UpdateCredential($tenant: String!, $name: String!, $value: json!, $updated_at: timestamptz!)
 //
 
 type UpdateCredentialVariables struct {
 	Tenant    String      `json:"tenant"`
 	Name      String      `json:"name"`
-	Value     Bytea       `json:"value"`
+	Value     Json        `json:"value"`
 	UpdatedAt Timestamptz `json:"updated_at"`
 }
 
@@ -465,7 +465,7 @@ func NewUpdateCredentialRequest(url string, vars *UpdateCredentialVariables) (*U
 	}
 	b, err := json.Marshal(&GraphQLOperation{
 		Variables: variables,
-		Query: `mutation UpdateCredential($tenant: String!, $name: String!, $value: bytea!, $updated_at: timestamptz!) {
+		Query: `mutation UpdateCredential($tenant: String!, $name: String!, $value: json!, $updated_at: timestamptz!) {
   update_credential_by_pk(_set: {value: $value, updated_at: $updated_at}, pk_columns: {tenant: $tenant, name: $name}) {
     tenant
     name
@@ -1502,7 +1502,6 @@ type Float float64
 type Boolean bool
 type String string
 type ID string
-type Bytea string
 type Json string
 type Timestamp string
 type Timestamptz string
@@ -1877,18 +1876,6 @@ type BranchSetInput struct {
 	Protected *Boolean     `json:"protected,omitempty"`
 }
 
-type ByteaComparisonExp struct {
-	Eq     *Bytea   `json:"_eq,omitempty"`
-	Gt     *Bytea   `json:"_gt,omitempty"`
-	Gte    *Bytea   `json:"_gte,omitempty"`
-	In     *[]Bytea `json:"_in,omitempty"`
-	IsNull *Boolean `json:"_is_null,omitempty"`
-	Lt     *Bytea   `json:"_lt,omitempty"`
-	Lte    *Bytea   `json:"_lte,omitempty"`
-	Neq    *Bytea   `json:"_neq,omitempty"`
-	Nin    *[]Bytea `json:"_nin,omitempty"`
-}
-
 type CredentialAggregateOrderBy struct {
 	Count *OrderBy              `json:"count,omitempty"`
 	Max   *CredentialMaxOrderBy `json:"max,omitempty"`
@@ -1911,7 +1898,7 @@ type CredentialBoolExp struct {
 	TenantByTenant *TenantBoolExp            `json:"tenantByTenant,omitempty"`
 	Type           *StringComparisonExp      `json:"type,omitempty"`
 	UpdatedAt      *TimestamptzComparisonExp `json:"updated_at,omitempty"`
-	Value          *ByteaComparisonExp       `json:"value,omitempty"`
+	Value          *JsonComparisonExp        `json:"value,omitempty"`
 }
 
 type CredentialInsertInput struct {
@@ -1922,7 +1909,7 @@ type CredentialInsertInput struct {
 	TenantByTenant *TenantObjRelInsertInput   `json:"tenantByTenant,omitempty"`
 	Type           *String                    `json:"type,omitempty"`
 	UpdatedAt      *Timestamptz               `json:"updated_at,omitempty"`
-	Value          *Bytea                     `json:"value,omitempty"`
+	Value          *Json                      `json:"value,omitempty"`
 }
 
 type CredentialMaxOrderBy struct {
@@ -1974,7 +1961,7 @@ type CredentialSetInput struct {
 	Tenant    *String      `json:"tenant,omitempty"`
 	Type      *String      `json:"type,omitempty"`
 	UpdatedAt *Timestamptz `json:"updated_at,omitempty"`
-	Value     *Bytea       `json:"value,omitempty"`
+	Value     *Json        `json:"value,omitempty"`
 }
 
 type ExporterAggregateOrderBy struct {
@@ -2686,7 +2673,7 @@ type Credential struct {
 	TenantByTenant     Tenant            `json:"tenantByTenant"`
 	Type               String            `json:"type"`
 	UpdatedAt          Timestamptz       `json:"updated_at"`
-	Value              Bytea             `json:"value"`
+	Value              Json              `json:"value"`
 }
 
 type CredentialAggregate struct {

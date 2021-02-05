@@ -33,12 +33,14 @@ Upsert
 ```
 echo 'name: foo
 type: aws-key
-value: |-
+# aws-key must contain these two fields as nested yaml (stored as json in postgres):
+value:
   AWS_ACCESS_KEY_ID: foo
   AWS_SECRET_ACCESS_KEY: bar
 ---
 name: bar
 type: gcp-service-account
+# gcp-service-account must contain valid json:
 value: |-
   {"json": "goes-here"}
 ' | curl -v -XPOST --data-binary @- http://127.0.0.1:8989/api/v1/credentials/
@@ -66,7 +68,8 @@ Upsert (will fail if referenced `credential`s aren't present)
 echo 'name: foo
 type: cloudwatch
 credential: foo
-config: |-
+# nested yaml payload defined by cloudwatch exporter:
+config:
   region: us-west-2
   metrics:
   - aws_namespace: Buildkite
@@ -85,7 +88,8 @@ config: |-
 name: bar
 type: stackdriver
 credential: bar
-config: |-
+# nested yaml fields matching stackdriver exporter flags:
+config:
   monitoring.metrics-type-prefixes: # required, comma separated list
   - compute.googleapis.com/instance/cpu
   - compute.googleapis.com/instance/disk

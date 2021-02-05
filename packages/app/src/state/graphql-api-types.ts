@@ -29,7 +29,6 @@ export type Scalars = {
   Boolean: boolean;
   Int: number;
   Float: number;
-  bytea: any;
   json: any;
   timestamp: any;
   timestamptz: any;
@@ -300,19 +299,6 @@ export enum Branch_Update_Column {
   Protected = "protected"
 }
 
-/** expression to compare columns of type bytea. All fields are combined with logical 'AND'. */
-export type Bytea_Comparison_Exp = {
-  _eq?: Maybe<Scalars["bytea"]>;
-  _gt?: Maybe<Scalars["bytea"]>;
-  _gte?: Maybe<Scalars["bytea"]>;
-  _in?: Maybe<Array<Scalars["bytea"]>>;
-  _is_null?: Maybe<Scalars["Boolean"]>;
-  _lt?: Maybe<Scalars["bytea"]>;
-  _lte?: Maybe<Scalars["bytea"]>;
-  _neq?: Maybe<Scalars["bytea"]>;
-  _nin?: Maybe<Array<Scalars["bytea"]>>;
-};
-
 /** columns and relationships of "credential" */
 export type Credential = {
   created_at: Scalars["timestamptz"];
@@ -326,7 +312,7 @@ export type Credential = {
   tenantByTenant: Tenant;
   type: Scalars["String"];
   updated_at: Scalars["timestamptz"];
-  value: Scalars["bytea"];
+  value: Scalars["json"];
 };
 
 /** columns and relationships of "credential" */
@@ -345,6 +331,11 @@ export type CredentialExporters_AggregateArgs = {
   offset?: Maybe<Scalars["Int"]>;
   order_by?: Maybe<Array<Exporter_Order_By>>;
   where?: Maybe<Exporter_Bool_Exp>;
+};
+
+/** columns and relationships of "credential" */
+export type CredentialValueArgs = {
+  path?: Maybe<Scalars["String"]>;
 };
 
 /** aggregated selection of "credential" */
@@ -391,7 +382,7 @@ export type Credential_Bool_Exp = {
   tenantByTenant?: Maybe<Tenant_Bool_Exp>;
   type?: Maybe<String_Comparison_Exp>;
   updated_at?: Maybe<Timestamptz_Comparison_Exp>;
-  value?: Maybe<Bytea_Comparison_Exp>;
+  value?: Maybe<Json_Comparison_Exp>;
 };
 
 /** unique or primary key constraints on table "credential" */
@@ -409,7 +400,7 @@ export type Credential_Insert_Input = {
   tenantByTenant?: Maybe<Tenant_Obj_Rel_Insert_Input>;
   type?: Maybe<Scalars["String"]>;
   updated_at?: Maybe<Scalars["timestamptz"]>;
-  value?: Maybe<Scalars["bytea"]>;
+  value?: Maybe<Scalars["json"]>;
 };
 
 /** aggregate max on columns */
@@ -510,7 +501,7 @@ export type Credential_Set_Input = {
   tenant?: Maybe<Scalars["String"]>;
   type?: Maybe<Scalars["String"]>;
   updated_at?: Maybe<Scalars["timestamptz"]>;
-  value?: Maybe<Scalars["bytea"]>;
+  value?: Maybe<Scalars["json"]>;
 };
 
 /** update columns of table "credential" */
@@ -3106,7 +3097,7 @@ export type GetCredentialsQuery = {
 export type UpdateCredentialMutationVariables = Exact<{
   tenant: Scalars["String"];
   name: Scalars["String"];
-  value: Scalars["bytea"];
+  value: Scalars["json"];
   updated_at: Scalars["timestamptz"];
 }>;
 
@@ -3394,7 +3385,7 @@ export const UpdateCredentialDocument = gql`
   mutation UpdateCredential(
     $tenant: String!
     $name: String!
-    $value: bytea!
+    $value: json!
     $updated_at: timestamptz!
   ) {
     update_credential_by_pk(

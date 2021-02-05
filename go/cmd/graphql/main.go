@@ -15,6 +15,8 @@
 package main
 
 import (
+	"encoding/json"
+	"errors"
 	"flag"
 	"fmt"
 	"io"
@@ -148,7 +150,7 @@ func listCredentials(w http.ResponseWriter, r *http.Request) {
 type Credential struct {
 	Name string `yaml:"name"`
 	Type string `yaml:"type"`
-	Value string `yaml:"value"` // TODO interface{} instead of string?
+	Value interface{} `yaml:"value"` // nested yaml, or payload string, depending on type
 }
 
 func writeCredentials(w http.ResponseWriter, r *http.Request) {
@@ -184,7 +186,13 @@ func writeCredentials(w http.ResponseWriter, r *http.Request) {
 			break
 		}
 		name := graphql.String(yamlCredential.Name)
-		value := graphql.Bytea(yamlCredential.Value) // TODO validate format of value based on the type
+		credType := graphql.String(yamlCredential.Type)
+		value, err := validateCredValue(yamlCredential.Name, yamlCredential.Type, yamlCredential.Value)
+		if err != nil {
+			log.Debugf("Invalid credential value format: %s", err)
+			http.Error(w, fmt.Sprintf("Credential format validation failed: %s", err), http.StatusBadRequest)
+			return
+		}
 		if existingType, ok := existingTypes[yamlCredential.Name]; ok {
 			// Explicitly check and complain if the user tries to change the credential type
 			if yamlCredential.Type != "" && existingType != yamlCredential.Type {
@@ -195,15 +203,14 @@ func writeCredentials(w http.ResponseWriter, r *http.Request) {
 			// TODO check for no-op updates and skip them (and avoid unnecessary changes to UpdatedAt)
 			updates = append(updates, graphql.UpdateCredentialVariables{
 				Name: name,
-				Value: value,
+				Value: *value,
 				UpdatedAt: now,
 			})
 		} else {
-			credType := graphql.String(yamlCredential.Type)
 			inserts = append(inserts, graphql.CredentialInsertInput{
 				Name: &name,
 				Type: &credType,
-				Value: &value,
+				Value: value,
 				CreatedAt: &now,
 				UpdatedAt: &now,
 			})
@@ -235,6 +242,60 @@ func writeCredentials(w http.ResponseWriter, r *http.Request) {
 				return
 			}
 		}
+	}
+}
+
+type AWSCredentialValue struct {
+	AWS_ACCESS_KEY_ID string
+	AWS_SECRET_ACCESS_KEY string
+}
+
+func validateCredValue(credName string, credType string, credValue interface{}) (*graphql.Json, error) {
+	switch credType {
+	case "aws-key":
+		// Expect regular YAML fields (not as a nested string)
+		errfmt := "Expected %s credential '%s' value to contain YAML string fields: AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY (%s)"
+		switch v := credValue.(type) {
+		case map[interface{}]interface{}:
+			if len(v) != 2 {
+				return nil, errors.New(fmt.Sprintf(errfmt, credType, credName, "wrong size"))
+			}
+			key, keyok := v["AWS_ACCESS_KEY_ID"]
+			val, valok := v["AWS_SECRET_ACCESS_KEY"]
+			if len(v) != 2 || !keyok || !valok {
+				return nil, errors.New(fmt.Sprintf(errfmt, credType, credName, "missing fields"))
+			}
+			keystr, keyok := key.(string)
+			valstr, valok := val.(string)
+			if !keyok || !valok {
+				return nil, errors.New(fmt.Sprintf(errfmt, credType, credName, "non-string fields"))
+			}
+			json, err := json.Marshal(AWSCredentialValue{
+				AWS_ACCESS_KEY_ID: keystr,
+				AWS_SECRET_ACCESS_KEY: valstr,
+			})
+			if err != nil {
+				return nil, errors.New(fmt.Sprintf(errfmt, credType, credName, "failed to reserialize as JSON"))
+			}
+			gjson := graphql.Json(json)
+			return &gjson, nil
+		default:
+			return nil, errors.New(fmt.Sprintf(errfmt, credType, credName, "expected a map"))
+		}
+	case "gcp-service-account":
+		// Expect string containing a valid JSON payload
+		switch v := credValue.(type) {
+		case string:
+			if !json.Valid([]byte(v)) {
+				return nil, errors.New(fmt.Sprintf("%s credential '%s' value is not a valid JSON string", credType, credName))
+			}
+			gjson := graphql.Json(v)
+			return &gjson, nil
+		default:
+			return nil, errors.New(fmt.Sprintf("Expected %s credential '%s' value to be a JSON string", credType, credName))
+		}
+	default:
+		return nil, errors.New(fmt.Sprintf("Unsupported credential type: %s (expected aws-key or gcp-service-account)", credType))
 	}
 }
 
@@ -288,7 +349,7 @@ type ExporterInfo struct {
 	Name string `yaml:"name"`
 	Type string `yaml:"type,omitempty"`
 	Credential string `yaml:"credential,omitempty"`
-	Config string `yaml:"config,omitempty"`
+	Config interface{} `yaml:"config,omitempty"`
 	CreatedAt string `yaml:"created_at,omitempty"`
 	UpdatedAt string `yaml:"updated_at,omitempty"`
 }
@@ -305,11 +366,18 @@ func listExporters(w http.ResponseWriter, r *http.Request) {
 
 	encoder := yaml.NewEncoder(w)
 	for _, exporter := range resp.Exporter {
+		configJson := make(map[string]interface{})
+		err := json.Unmarshal([]byte(exporter.Config), &configJson)
+		if err != nil {
+			// give up and pass-through the json
+			log.Warnf("Failed to decode JSON config for exporter %s (err: %s): %s", exporter.Name, err, exporter.Config)
+			configJson["json"] = exporter.Config
+		}
 		encoder.Encode(ExporterInfo{
 			Name: exporter.Name,
 			Type: exporter.Type,
 			Credential: exporter.Credential,
-			Config: exporter.Config,
+			Config: configJson,
 			CreatedAt: exporter.CreatedAt,
 			UpdatedAt: exporter.UpdatedAt,
 		})
@@ -321,7 +389,7 @@ type Exporter struct {
 	Name string `yaml:"name"`
 	Type string `yaml:"type"`
 	Credential string `yaml:"credential,omitempty"`
-	Config string `yaml:"config"` // TODO interface{} type instead of string?
+	Config interface{} `yaml:"config"` // nested yaml
 }
 
 func writeExporters(w http.ResponseWriter, r *http.Request) {
@@ -366,7 +434,30 @@ func writeExporters(w http.ResponseWriter, r *http.Request) {
 			gcredential := graphql.String(yamlExporter.Credential)
 			credential = &gcredential
 		}
-		config := graphql.Json(yamlExporter.Config) // TODO convert yaml to json?
+
+		var gconfig graphql.Json
+		switch yamlMap := yamlExporter.Config.(type) {
+		case map[interface{}]interface{}:
+			// Encode the parsed YAML config tree as JSON
+			convMap, err := recurseMapStringKeys(yamlMap)
+			if err != nil {
+				log.Debugf("Unable to serialize exporter '%s' config as JSON: %s", yamlExporter.Name, err)
+				http.Error(w, fmt.Sprintf("Exporter '%s' config could not be encoded as JSON: %s", yamlExporter.Name, err), http.StatusBadRequest)
+				return
+			}
+			json, err := json.Marshal(convMap)
+			if err != nil {
+				log.Debugf("Unable to serialize exporter '%s' config as JSON: %s", yamlExporter.Name, err)
+				http.Error(w, fmt.Sprintf("Exporter '%s' config could not be encoded as JSON: %s", yamlExporter.Name, err), http.StatusBadRequest)
+				return
+			}
+			gconfig = graphql.Json(json)
+		default:
+			log.Debugf("Invalid exporter '%s' config type", yamlExporter.Name)
+			http.Error(w, fmt.Sprintf("Exporter '%s' config is invalid (must be YAML map)", yamlExporter.Name), http.StatusBadRequest)
+			return
+		}
+
 		if existingType, ok := existingTypes[yamlExporter.Name]; ok {
 			// Explicitly check and complain if the user tries to change the exporter type
 			if yamlExporter.Type != "" && existingType != yamlExporter.Type {
@@ -378,7 +469,7 @@ func writeExporters(w http.ResponseWriter, r *http.Request) {
 			updates = append(updates, graphql.UpdateExporterVariables{
 				Name: name,
 				Credential: credential,
-				Config: config,
+				Config: gconfig,
 				UpdatedAt: now,
 			})
 		} else {
@@ -387,7 +478,7 @@ func writeExporters(w http.ResponseWriter, r *http.Request) {
 				Name: &name,
 				Type: &expType,
 				Credential: credential,
-				Config: &config,
+				Config: &gconfig,
 				CreatedAt: &now,
 				UpdatedAt: &now,
 			})
@@ -405,7 +496,7 @@ func writeExporters(w http.ResponseWriter, r *http.Request) {
 	if len(inserts) != 0 {
 		err := exporterClient.Insert(inserts)
 		if err != nil {
-			log.Warnf("Insert: %d credentials failed: %s", len(inserts), err)
+			log.Warnf("Insert: %d exporters failed: %s", len(inserts), err)
 			http.Error(w, fmt.Sprintf("Creating %d exporters failed: %s", len(inserts), err), http.StatusInternalServerError)
 			return
 		}
@@ -414,11 +505,47 @@ func writeExporters(w http.ResponseWriter, r *http.Request) {
 		for _, update := range updates {
 			err := exporterClient.Update(update)
 			if err != nil {
-				log.Warnf("Update: Credential %s failed: %s", update.Name, err)
+				log.Warnf("Update: Exporter %s failed: %s", update.Name, err)
 				http.Error(w, fmt.Sprintf("Updating exporter %s failed: %s", update.Name, err), http.StatusInternalServerError)
 				return
 			}
 		}
+	}
+}
+
+/// Searches through the provided object tree for any maps with interface keys (from YAML),
+/// and converts those keys to strings (required for JSON).
+func recurseMapStringKeys(in interface{}) (interface{}, error) {
+	// TODO convert to map[string]interface{}
+	switch inType := in.(type) {
+	case map[interface{}]interface{}: // yaml type for maps. needs string keys to work with JSON
+		// Ensure the map keys are converted, RECURSE into values to find nested maps
+		strMap := make(map[string]interface{})
+		for k, v := range inType {
+			switch kType := k.(type) {
+			case string:
+				conv, err := recurseMapStringKeys(v)
+				if err != nil {
+					return nil, err
+				}
+				strMap[string(kType)] = conv
+			default:
+				return nil, errors.New("Map is invalid (keys must be strings)")
+			}
+		}
+		return strMap, nil
+	case []interface{}:
+		// RECURSE into entries to convert any nested maps are converted
+		for i, v := range inType {
+			conv, err := recurseMapStringKeys(v)
+			if err != nil {
+				return nil, err
+			}
+			inType[i] = conv
+		}
+		return inType, nil
+	default:
+		return in, nil
 	}
 }
 
@@ -438,12 +565,20 @@ func getExporter(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	configJson := make(map[string]interface{})
+	err = json.Unmarshal([]byte(resp.ExporterByPk.Config), &configJson)
+	if err != nil {
+		// give up and pass-through the json
+		log.Warnf("Failed to decode JSON config for exporter %s (err: %s): %s", resp.ExporterByPk.Name, err, resp.ExporterByPk.Config)
+		configJson["json"] = resp.ExporterByPk.Config
+	}
+
 	encoder := yaml.NewEncoder(w)
 	encoder.Encode(ExporterInfo{
 		Name: resp.ExporterByPk.Name,
 		Type: resp.ExporterByPk.Type,
 		Credential: resp.ExporterByPk.Credential,
-		Config: resp.ExporterByPk.Config,
+		Config: configJson,
 		CreatedAt: resp.ExporterByPk.CreatedAt,
 		UpdatedAt: resp.ExporterByPk.UpdatedAt,
 	})
