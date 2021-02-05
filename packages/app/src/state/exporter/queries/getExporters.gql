@@ -6,5 +6,6 @@ query GetExporters($tenant: String!) {
     credential
     config
     created_at
+    updated_at
   }
 }

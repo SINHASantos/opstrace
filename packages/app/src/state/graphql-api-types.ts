@@ -325,6 +325,7 @@ export type Credential = {
   /** An object relationship */
   tenantByTenant: Tenant;
   type: Scalars["String"];
+  updated_at: Scalars["timestamptz"];
   value: Scalars["bytea"];
 };
 
@@ -389,6 +390,7 @@ export type Credential_Bool_Exp = {
   tenant?: Maybe<String_Comparison_Exp>;
   tenantByTenant?: Maybe<Tenant_Bool_Exp>;
   type?: Maybe<String_Comparison_Exp>;
+  updated_at?: Maybe<Timestamptz_Comparison_Exp>;
   value?: Maybe<Bytea_Comparison_Exp>;
 };
 
@@ -406,6 +408,7 @@ export type Credential_Insert_Input = {
   tenant?: Maybe<Scalars["String"]>;
   tenantByTenant?: Maybe<Tenant_Obj_Rel_Insert_Input>;
   type?: Maybe<Scalars["String"]>;
+  updated_at?: Maybe<Scalars["timestamptz"]>;
   value?: Maybe<Scalars["bytea"]>;
 };
 
@@ -415,6 +418,7 @@ export type Credential_Max_Fields = {
   name?: Maybe<Scalars["String"]>;
   tenant?: Maybe<Scalars["String"]>;
   type?: Maybe<Scalars["String"]>;
+  updated_at?: Maybe<Scalars["timestamptz"]>;
 };
 
 /** order by max() on columns of table "credential" */
@@ -423,6 +427,7 @@ export type Credential_Max_Order_By = {
   name?: Maybe<Order_By>;
   tenant?: Maybe<Order_By>;
   type?: Maybe<Order_By>;
+  updated_at?: Maybe<Order_By>;
 };
 
 /** aggregate min on columns */
@@ -431,6 +436,7 @@ export type Credential_Min_Fields = {
   name?: Maybe<Scalars["String"]>;
   tenant?: Maybe<Scalars["String"]>;
   type?: Maybe<Scalars["String"]>;
+  updated_at?: Maybe<Scalars["timestamptz"]>;
 };
 
 /** order by min() on columns of table "credential" */
@@ -439,6 +445,7 @@ export type Credential_Min_Order_By = {
   name?: Maybe<Order_By>;
   tenant?: Maybe<Order_By>;
   type?: Maybe<Order_By>;
+  updated_at?: Maybe<Order_By>;
 };
 
 /** response of any mutation on the table "credential" */
@@ -470,6 +477,7 @@ export type Credential_Order_By = {
   tenant?: Maybe<Order_By>;
   tenantByTenant?: Maybe<Tenant_Order_By>;
   type?: Maybe<Order_By>;
+  updated_at?: Maybe<Order_By>;
   value?: Maybe<Order_By>;
 };
 
@@ -490,6 +498,8 @@ export enum Credential_Select_Column {
   /** column name */
   Type = "type",
   /** column name */
+  UpdatedAt = "updated_at",
+  /** column name */
   Value = "value"
 }
 
@@ -499,6 +509,7 @@ export type Credential_Set_Input = {
   name?: Maybe<Scalars["String"]>;
   tenant?: Maybe<Scalars["String"]>;
   type?: Maybe<Scalars["String"]>;
+  updated_at?: Maybe<Scalars["timestamptz"]>;
   value?: Maybe<Scalars["bytea"]>;
 };
 
@@ -512,6 +523,8 @@ export enum Credential_Update_Column {
   Tenant = "tenant",
   /** column name */
   Type = "type",
+  /** column name */
+  UpdatedAt = "updated_at",
   /** column name */
   Value = "value"
 }
@@ -528,6 +541,7 @@ export type Exporter = {
   /** An object relationship */
   tenantByTenant: Tenant;
   type: Scalars["String"];
+  updated_at: Scalars["timestamptz"];
 };
 
 /** columns and relationships of "exporter" */
@@ -580,6 +594,7 @@ export type Exporter_Bool_Exp = {
   tenant?: Maybe<String_Comparison_Exp>;
   tenantByTenant?: Maybe<Tenant_Bool_Exp>;
   type?: Maybe<String_Comparison_Exp>;
+  updated_at?: Maybe<Timestamptz_Comparison_Exp>;
 };
 
 /** unique or primary key constraints on table "exporter" */
@@ -598,6 +613,7 @@ export type Exporter_Insert_Input = {
   tenant?: Maybe<Scalars["String"]>;
   tenantByTenant?: Maybe<Tenant_Obj_Rel_Insert_Input>;
   type?: Maybe<Scalars["String"]>;
+  updated_at?: Maybe<Scalars["timestamptz"]>;
 };
 
 /** aggregate max on columns */
@@ -607,6 +623,7 @@ export type Exporter_Max_Fields = {
   name?: Maybe<Scalars["String"]>;
   tenant?: Maybe<Scalars["String"]>;
   type?: Maybe<Scalars["String"]>;
+  updated_at?: Maybe<Scalars["timestamptz"]>;
 };
 
 /** order by max() on columns of table "exporter" */
@@ -616,6 +633,7 @@ export type Exporter_Max_Order_By = {
   name?: Maybe<Order_By>;
   tenant?: Maybe<Order_By>;
   type?: Maybe<Order_By>;
+  updated_at?: Maybe<Order_By>;
 };
 
 /** aggregate min on columns */
@@ -625,6 +643,7 @@ export type Exporter_Min_Fields = {
   name?: Maybe<Scalars["String"]>;
   tenant?: Maybe<Scalars["String"]>;
   type?: Maybe<Scalars["String"]>;
+  updated_at?: Maybe<Scalars["timestamptz"]>;
 };
 
 /** order by min() on columns of table "exporter" */
@@ -634,6 +653,7 @@ export type Exporter_Min_Order_By = {
   name?: Maybe<Order_By>;
   tenant?: Maybe<Order_By>;
   type?: Maybe<Order_By>;
+  updated_at?: Maybe<Order_By>;
 };
 
 /** response of any mutation on the table "exporter" */
@@ -667,6 +687,7 @@ export type Exporter_Order_By = {
   tenant?: Maybe<Order_By>;
   tenantByTenant?: Maybe<Tenant_Order_By>;
   type?: Maybe<Order_By>;
+  updated_at?: Maybe<Order_By>;
 };
 
 /** primary key columns input for table: "exporter" */
@@ -688,7 +709,9 @@ export enum Exporter_Select_Column {
   /** column name */
   Tenant = "tenant",
   /** column name */
-  Type = "type"
+  Type = "type",
+  /** column name */
+  UpdatedAt = "updated_at"
 }
 
 /** input type for updating data in table "exporter" */
@@ -699,6 +722,7 @@ export type Exporter_Set_Input = {
   name?: Maybe<Scalars["String"]>;
   tenant?: Maybe<Scalars["String"]>;
   type?: Maybe<Scalars["String"]>;
+  updated_at?: Maybe<Scalars["timestamptz"]>;
 };
 
 /** update columns of table "exporter" */
@@ -714,7 +738,9 @@ export enum Exporter_Update_Column {
   /** column name */
   Tenant = "tenant",
   /** column name */
-  Type = "type"
+  Type = "type",
+  /** column name */
+  UpdatedAt = "updated_at"
 }
 
 /** columns and relationships of "file" */
@@ -3063,7 +3089,7 @@ export type GetCredentialQueryVariables = Exact<{
 
 export type GetCredentialQuery = {
   credential_by_pk?: Maybe<
-    Pick<Credential, "tenant" | "name" | "type" | "created_at">
+    Pick<Credential, "tenant" | "name" | "type" | "created_at" | "updated_at">
   >;
 };
 
@@ -3073,8 +3099,19 @@ export type GetCredentialsQueryVariables = Exact<{
 
 export type GetCredentialsQuery = {
   credential: Array<
-    Pick<Credential, "tenant" | "name" | "type" | "created_at">
+    Pick<Credential, "tenant" | "name" | "type" | "created_at" | "updated_at">
   >;
+};
+
+export type UpdateCredentialMutationVariables = Exact<{
+  tenant: Scalars["String"];
+  name: Scalars["String"];
+  value: Scalars["bytea"];
+  updated_at: Scalars["timestamptz"];
+}>;
+
+export type UpdateCredentialMutation = {
+  update_credential_by_pk?: Maybe<Pick<Credential, "tenant" | "name">>;
 };
 
 export type CreateExportersMutationVariables = Exact<{
@@ -3105,7 +3142,13 @@ export type GetExporterQuery = {
   exporter_by_pk?: Maybe<
     Pick<
       Exporter,
-      "tenant" | "name" | "type" | "credential" | "config" | "created_at"
+      | "tenant"
+      | "name"
+      | "type"
+      | "credential"
+      | "config"
+      | "created_at"
+      | "updated_at"
     >
   >;
 };
@@ -3118,9 +3161,27 @@ export type GetExportersQuery = {
   exporter: Array<
     Pick<
       Exporter,
-      "tenant" | "name" | "type" | "credential" | "config" | "created_at"
+      | "tenant"
+      | "name"
+      | "type"
+      | "credential"
+      | "config"
+      | "created_at"
+      | "updated_at"
     >
   >;
+};
+
+export type UpdateExporterMutationVariables = Exact<{
+  tenant: Scalars["String"];
+  name: Scalars["String"];
+  config: Scalars["json"];
+  credential?: Maybe<Scalars["String"]>;
+  updated_at: Scalars["timestamptz"];
+}>;
+
+export type UpdateExporterMutation = {
+  update_exporter_by_pk?: Maybe<Pick<Exporter, "tenant" | "name">>;
 };
 
 export type SubscribeToFilesSubscriptionVariables = Exact<{
@@ -3314,6 +3375,7 @@ export const GetCredentialDocument = gql`
       name
       type
       created_at
+      updated_at
     }
   }
 `;
@@ -3324,6 +3386,23 @@ export const GetCredentialsDocument = gql`
       name
       type
       created_at
+      updated_at
+    }
+  }
+`;
+export const UpdateCredentialDocument = gql`
+  mutation UpdateCredential(
+    $tenant: String!
+    $name: String!
+    $value: bytea!
+    $updated_at: timestamptz!
+  ) {
+    update_credential_by_pk(
+      _set: { value: $value, updated_at: $updated_at }
+      pk_columns: { tenant: $tenant, name: $name }
+    ) {
+      tenant
+      name
     }
   }
 `;
@@ -3354,6 +3433,7 @@ export const GetExporterDocument = gql`
       credential
       config
       created_at
+      updated_at
     }
   }
 `;
@@ -3366,6 +3446,28 @@ export const GetExportersDocument = gql`
       credential
       config
       created_at
+      updated_at
+    }
+  }
+`;
+export const UpdateExporterDocument = gql`
+  mutation UpdateExporter(
+    $tenant: String!
+    $name: String!
+    $config: json!
+    $credential: String
+    $updated_at: timestamptz!
+  ) {
+    update_exporter_by_pk(
+      _set: {
+        config: $config
+        credential: $credential
+        updated_at: $updated_at
+      }
+      pk_columns: { tenant: $tenant, name: $name }
+    ) {
+      tenant
+      name
     }
   }
 `;
@@ -3638,6 +3740,22 @@ export function getSdk(
         )
       );
     },
+    UpdateCredential(
+      variables: UpdateCredentialMutationVariables
+    ): Promise<{
+      data?: UpdateCredentialMutation | undefined;
+      extensions?: any;
+      headers: Headers;
+      status: number;
+      errors?: GraphQLError[] | undefined;
+    }> {
+      return withWrapper(() =>
+        client.rawRequest<UpdateCredentialMutation>(
+          print(UpdateCredentialDocument),
+          variables
+        )
+      );
+    },
     CreateExporters(
       variables: CreateExportersMutationVariables
     ): Promise<{
@@ -3698,6 +3816,22 @@ export function getSdk(
       return withWrapper(() =>
         client.rawRequest<GetExportersQuery>(
           print(GetExportersDocument),
+          variables
+        )
+      );
+    },
+    UpdateExporter(
+      variables: UpdateExporterMutationVariables
+    ): Promise<{
+      data?: UpdateExporterMutation | undefined;
+      extensions?: any;
+      headers: Headers;
+      status: number;
+      errors?: GraphQLError[] | undefined;
+    }> {
+      return withWrapper(() =>
+        client.rawRequest<UpdateExporterMutation>(
+          print(UpdateExporterDocument),
           variables
         )
       );
